@@ -51,13 +51,21 @@ bot.on("callback_query", (callbackQuery) => {
 
 // Importamos o requerimos express
 const express = require("express");
-const port = 3333;
+const cors = require("cors");
+
+const menuRouter = require('./routes/menuRoutes')
+const orderRoutes = require('./routes/ordersRoutes')
 
 //Instanciamos express
 const app = express();
+const port = 3333;
 
 //Hacemos que funcione el req.body
 app.use(express.json());
+app.use(cors());
+
+app.use("/menus" , menuRouter)
+app.use("/orders" , orderRoutes)
 
 // Arrancamos el servidor para que escuche llamadas
 app.listen(port, () => {
