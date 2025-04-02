@@ -50,6 +50,7 @@ bot.on("callback_query", (callbackQuery) => {
  ***/
 
 // Importamos o requerimos express
+const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 
@@ -66,6 +67,14 @@ app.use(cors());
 
 app.use("/menus" , menuRouter)
 app.use("/orders" , orderRoutes)
+
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Conexión exitosa a MongoDB"))
+  .catch((err) => console.error("Error conectando a MongoDB:", err));
 
 // Arrancamos el servidor para que escuche llamadas
 app.listen(port, () => {
