@@ -1,5 +1,30 @@
 require("dotenv").config();
 
+const getMenus = () => {
+  return [
+    { _id: "uygsadfhisgda", name: "Infantil", price: 15 },
+    { _id: "asdhjkasd2312", name: "Paella", price: 25 },
+    { _id: "9d8as7d8a7sd", name: "Burger", price: 25 },
+    { _id: "9d8as7d8a7sd", name: "Vegetal", price: 65 }
+  ];
+};
+
+const postPedido = (userId, menuId) => {
+  console.log("Ejecutada")
+  console.log("Usuario que hace el pedido:", userId)
+  console.log("Menu elegido:", menuId)
+}
+
+const getPedidos = () => {
+  return [
+    { _id: "uygsadfhisgda", name: "Infantil", price: 15 },
+    { _id: "asdhjkasd2312", name: "Paella", price: 25 },
+    { _id: "9d8as7d8a7sd", name: "Burger", price: 25 },
+    { _id: "9d8as7d8a7sd", name: "Vegetal", price: 65 }
+  ];
+};
+
+
 /***
  * BOT Commands
  ***/
@@ -12,33 +37,46 @@ bot.on("message", (msg) => {
   const messageText = msg.text;
   console.log(msg);
 
-  // Process the incoming message here
   if (messageText === "/start") {
-    bot.sendMessage(chatId, "Hello World!");
-    const photoUrl = "https://www.example.com/image.png";
-    bot.sendPhoto(chatId, photoUrl, { caption: "Here is your photo!" });
+    bot.sendMessage(chatId, "Bienvenido a Duckburger");
     const inlineKeyboard = {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "Option 1", callback_data: "1" }],
-          [{ text: "Option 2", callback_data: "2" }],
-          [{ text: "Option 3", callback_data: "3" }],
+          [{ text: "Ver Menú", callback_data: "menu" }, { text: "Ver Pedido", callback_data: "menu" }]
         ],
       },
     };
-
-    // Send a message with the inline keyboard
-    bot.sendMessage(chatId, "Choose an option:", inlineKeyboard);
+    bot.sendMessage(chatId, "¿Qué desea hacer?", inlineKeyboard);
   }
 });
 
 // Handle callback queries
-bot.on("callback_query", (callbackQuery) => {
+bot.on("callback_query", async (callbackQuery) => {
   const message = callbackQuery.message;
   const data = callbackQuery.data;
 
-  // Send a message based on the callback data
-  bot.sendMessage(message.chat.id, `You selected option ${data}`);
+  if (data === "menu") {
+    const inlineKeyboard = {
+      reply_markup: {
+        inline_keyboard: getMenus().map(menu => [{
+          text: `${menu.name} - $${menu.price}`,
+          callback_data: menu._id
+        }])
+      }
+    };
+    bot.sendMessage(message.chat.id, "Aquí está nuestro menú:", inlineKeyboard);
+  } else if (data === "pedido") {
+    bot.sendMessage(message.chat.id, "Función de pedidos próximamente disponible.");
+  } else {
+    const selectedMenu = getMenus().find(menu => menu._id === data);
+    if (selectedMenu) {
+   
+      postPedido(message.chat.id, selectedMenu._id)
+      bot.sendMessage(message.chat.id, `Has seleccionado: ${selectedMenu.name} - $${selectedMenu.price}`);
+    } else {
+      bot.sendMessage(message.chat.id, "Selección no válida.");
+    }
+  }
 });
 
 /***
@@ -48,35 +86,10 @@ bot.on("callback_query", (callbackQuery) => {
 /***
  * HTTP Express Backend Commands
  ***/
-
-// Importamos o requerimos express
-const mongoose = require("mongoose");
 const express = require("express");
-const cors = require("cors");
-
-const menuRouter = require('./routes/menuRoutes')
-const orderRoutes = require('./routes/ordersRoutes')
-
-//Instanciamos express
-const app = express();
 const port = 3333;
-
-//Hacemos que funcione el req.body
+const app = express();
 app.use(express.json());
-app.use(cors());
-
-app.use("/menus" , menuRouter)
-app.use("/orders" , orderRoutes)
-
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Conexión exitosa a MongoDB"))
-  .catch((err) => console.error("Error conectando a MongoDB:", err));
-
-// Arrancamos el servidor para que escuche llamadas
 app.listen(port, () => {
-  "El servidor está escuchando en el puerto " + port;
+  console.log("El servidor está escuchando en el puerto " + port);
 });

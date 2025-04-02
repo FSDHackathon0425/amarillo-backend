@@ -1,7 +1,7 @@
 {
   "name": "hackaton2409",
   "version": "1.0.0",
-  "description": "",
+  "description": "Este proyecto es el backend para una aplicación de reservas de menús en un restaurante a través de un bot de Telegram. El backend está desarrollado en Node.js y utiliza MongoDB como base de datos.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
