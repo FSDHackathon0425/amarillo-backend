@@ -9,21 +9,20 @@ const getMenus = () => {
   ];
 };
 
-const postPedido = (userId, menuId) => {
-  console.log("Ejecutada")
-  console.log("Usuario que hace el pedido:", userId)
-  console.log("Menu elegido:", menuId)
-}
+const pedidos = [];
 
-const getPedidos = () => {
-  return [
-    { _id: "uygsadfhisgda", name: "Infantil", price: 15 },
-    { _id: "asdhjkasd2312", name: "Paella", price: 25 },
-    { _id: "9d8as7d8a7sd", name: "Burger", price: 25 },
-    { _id: "9d8as7d8a7sd", name: "Vegetal", price: 65 }
-  ];
+const postPedido = (userId, menuId) => {
+  const menu = getMenus().find(menu => menu._id === menuId);
+  if (menu) {
+    const newPedido = { userId, menuId, name: menu.name, price: menu.price, estado: "en proceso" };
+    pedidos.push(newPedido);
+    console.log("Pedido realizado:", newPedido);
+    return newPedido;
+  }
+  return null;
 };
 
+const getPedidos = (userId) => pedidos.filter(pedido => pedido.userId === userId).map(pedido => `🔹 ${pedido.name} - $${pedido.price} (${pedido.estado})`).join("\n") || "No tienes pedidos registrados.";
 
 /***
  * BOT Commands
@@ -42,7 +41,7 @@ bot.on("message", (msg) => {
     const inlineKeyboard = {
       reply_markup: {
         inline_keyboard: [
-          [{ text: "Ver Menú", callback_data: "menu" }, { text: "Ver Pedido", callback_data: "menu" }]
+          [{ text: "Ver Menú", callback_data: "menu" }, { text: "Ver Pedido", callback_data: "orders" }]
         ],
       },
     };
@@ -54,6 +53,7 @@ bot.on("message", (msg) => {
 bot.on("callback_query", async (callbackQuery) => {
   const message = callbackQuery.message;
   const data = callbackQuery.data;
+  const chatId = message.chat.id;
 
   if (data === "menu") {
     const inlineKeyboard = {
@@ -65,16 +65,19 @@ bot.on("callback_query", async (callbackQuery) => {
       }
     };
     bot.sendMessage(message.chat.id, "Aquí está nuestro menú:", inlineKeyboard);
-  } else if (data === "pedido") {
-    bot.sendMessage(message.chat.id, "Función de pedidos próximamente disponible.");
+  } else if (data === "orders") {
+    bot.sendMessage(chatId, `Tus pedidos:\n${getPedidos(chatId)}`);
   } else {
     const selectedMenu = getMenus().find(menu => menu._id === data);
     if (selectedMenu) {
-   
-      postPedido(message.chat.id, selectedMenu._id)
-      bot.sendMessage(message.chat.id, `Has seleccionado: ${selectedMenu.name} - $${selectedMenu.price}`);
+      const pedido = postPedido(chatId, selectedMenu._id);
+      if (pedido) {
+        bot.sendMessage(chatId, `Pedido realizado: ${pedido.name} - $${pedido.price}\nEstado: ${pedido.estado}`);
+      } else {
+        bot.sendMessage(chatId, "Error al procesar el pedido.");
+      }
     } else {
-      bot.sendMessage(message.chat.id, "Selección no válida.");
+      bot.sendMessage(chatId, "Selección no válida.");
     }
   }
 });
